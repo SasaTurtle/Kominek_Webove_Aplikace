@@ -1,0 +1,35 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coffee Tracker</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/script.js"></script>
+</head>
+<body>
+
+    <form id="coffeeForm">
+        <fieldset id="lidi">
+            
+           
+        </fieldset>
+
+        <fieldset id="piti">
+         
+        </fieldset>
+
+        <button type="button" onclick="saveDrinks()">Odeslat</button>
+    </form>
+
+    <button id="showConsumption" onclick="getSummaryOfDrinks()">Show Consumption</button>
+    <ul id="consumptionList"></ul>
+
+    
+    <script>
+        getPeopleList();
+        getTypesList();
+    </script>
+</body>
+</html>
