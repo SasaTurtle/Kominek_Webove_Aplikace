@@ -7,10 +7,10 @@ import Login from './login';
 
 function App() {
   return (
-        <BrowserRouter>
+        <BrowserRouter >
           <Routes>
               <Route path="/" element={<Register />} />
-              <Route path="/login/:id" element={<Login />} />
+              <Route path="/login/:username/:id" element={<Login />} />
           </Routes>
         </BrowserRouter>
   );

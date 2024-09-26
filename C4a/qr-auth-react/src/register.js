@@ -1,48 +1,56 @@
 import React, { useState } from 'react';
 import { QRCode } from 'react-qrcode-logo';
 import { v4 as uuidv4 } from 'uuid';
-import { useNavigate } from 'react-router-dom';
 import { callServer } from './postData'; 
 
 function Register() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [qrValue, setQrValue] = useState('');
   const [showQRCode, setShowQRCode] = useState(false);
   const [message, setMessage] = useState('');
   const [url, setUrl] = useState('');
-
+  const [minutes, setMinutes] = useState(0);
+  const [seconds, setSeconds] = useState(0);
+  const [deadline, setDeadline] = useState(new Date());
 
   const handleRegister = () => {
     const id = uuidv4(); // generujeme unikátní ID pro uživatele
-    const url = `https://nirmala.cz/sasa/login/${id}`; // URL s ID
-   
-    //loginUser('test@example.com', 'yourpassword');
-    // Reset username a password
+    const url = `/login/${username}/${id}`; // URL s ID
+    let interval = null;
+    
 
     callServer("register",username,password).then(response =>{
         if(response.success){
             setUsername('');
             setPassword('');
             setUrl(url);
-            setQrValue(url);
             setShowQRCode(true);
-            setMessage(`QR kód pro uživatele ${username} byl vygenerován. Platnost: 5 minut.`);
+            setMessage(`QR kód pro uživatele ${username} byl vygenerován. `);
+            setDeadline(new Date().setMinutes(5));
+            interval = setInterval(() => getTime(deadline), 1000);
+
         }else{
             setMessage(`chyba registrace.`);
         }
     });
     
-    
+    const getTime = () => {
+      const time = Date.parse(deadline) - Date.now();
+      setMinutes(5+Math.floor((time / 1000 / 60) % 60));
+      setSeconds(60+Math.floor((time / 1000) % 60));
+    };
+
     // Nastavit platnost QR kódu na 5 minut
     setTimeout(() => {
-      setQrValue('');
+      setUrl("");
       setShowQRCode(false);
       setMessage('Platnost QR kódu vypršela.');
+      clearInterval(interval);
     }, 5 * 60 * 1000); // 5 minut
   };
 
-
+  
+  
   
 
   return (
@@ -65,10 +73,12 @@ function Register() {
         <div>
           <h2>QR Kód</h2>
           <QRCode value={url} />
-          <link rel="qr" href={url} />
+          <a href={url} >Link na registraci</a>
+          <p>{message} Platnost {minutes}:{seconds}</p>
         </div>
+        
       )}
-      <p>{message}</p>
+      
     </div>
   );
 }

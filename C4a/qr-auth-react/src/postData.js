@@ -1,6 +1,6 @@
 async function callServer(action, email, password) {
     try {
-      const response = await fetch('/index.php', {
+      const response = await fetch('http://s-kominek-24.dev.spsejecna.net/app.php', {
         method: 'POST', // HTTP method (POST)
         headers: {
           'Content-Type': 'application/json',
@@ -19,7 +19,7 @@ async function callServer(action, email, password) {
       if (response.ok) {
         // If login was successful
         console.log('Login successful:', data);
-        return {success:true, data: data.message}
+        return {success:true, data: data}
       } else {
         // If there was an error (e.g., invalid credentials)
         console.error('Error:', data.message);
