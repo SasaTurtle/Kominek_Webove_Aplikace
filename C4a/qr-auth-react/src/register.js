@@ -15,7 +15,7 @@ function Register() {
 
   const handleRegister = () => {
     const id = uuidv4(); // generujeme unikátní ID pro uživatele
-    const url = `http://s-kominek-24.dev.spsejecna.net/login/${username}/${id}`; // URL s ID
+    const url = `/login/${username}/${id}`; // URL s ID
     let interval = null;
     
 
@@ -72,7 +72,7 @@ function Register() {
       {showQRCode && (
         <div>
           <h2>QR Kód</h2>
-          <QRCode value={url} />
+          <QRCode value={"http://s-kominek-24.dev.spsejecna.net" + url} />
           <a href={url} >Link na registraci</a>
           <p>{message} Platnost {minutes}:{seconds}</p>
         </div>
