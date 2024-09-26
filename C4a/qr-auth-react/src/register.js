@@ -15,7 +15,7 @@ function Register() {
 
   const handleRegister = () => {
     const id = uuidv4(); // generujeme unikátní ID pro uživatele
-    const url = `/login/${username}/${id}`; // URL s ID
+    const url = `http://s-kominek-24.dev.spsejecna.net/login/${username}/${id}`; // URL s ID
     let interval = null;
     
 
