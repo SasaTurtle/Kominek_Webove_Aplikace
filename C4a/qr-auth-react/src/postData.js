@@ -1,6 +1,6 @@
 async function callServer(action, email, password) {
     try {
-      const response = await fetch('http://s-kominek-24.dev.spsejecna.net/app.php', {
+      const response = await fetch('https://nirmala.cz/sasa/api.php', {
         method: 'POST', // HTTP method (POST)
         headers: {
           'Content-Type': 'application/json',
