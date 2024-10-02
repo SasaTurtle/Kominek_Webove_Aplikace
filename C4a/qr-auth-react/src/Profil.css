@@ -1,0 +1,52 @@
+/* Profil.css */
+.profil-container {
+    width: 300px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+    margin-top: 10%;
+  }
+  
+  .profil-container h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  .profil-container input[type="text"],
+  .profil-container input[type="file"] {
+    width: 90%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .profil-container input[type="file"] {
+    padding: 0;
+  }
+  
+  .profil-container button {
+    width: 100%;
+    padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  
+  .profil-container button:hover {
+    background-color: #45a049;
+  }
+  
+  .profil-container p {
+    color: red;
+    text-align: center;
+    font-size: 14px;
+  }
+  

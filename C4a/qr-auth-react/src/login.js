@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { callServer } from './postData'; 
+import { setSession } from './AuthService';
 
 const Login = () => {
   const { id } = useParams();
@@ -18,6 +19,7 @@ const Login = () => {
       if(response.success){
         setShowMessage(`Přihlášení úspěšné pro uživatele: ${username}`);
         setShowList(true);
+        setSession(username);
       } else {
         setShowMessage("Spatne uz jmeno nebo heslo");
       }
