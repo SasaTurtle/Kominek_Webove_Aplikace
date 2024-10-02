@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Profil.css';
 import { getSession, isAuth } from './AuthService';
-import { callServer2 } from './postData'; 
+import { callServer2, uploadFile, getUserData } from './postData'; 
 
 function Profil(){
 
@@ -9,6 +9,12 @@ function Profil(){
     const [prijmeni, setPrijmeni] = useState('');
     const [profilePic, setProfilePic] = useState(null);
     const [fileError, setFileError] = useState('');
+    const [profile, setProfile] = useState({
+        "user": "",
+        "name": "",
+        "surname": "",
+        "image": ""
+    });
     const isRegistered = isAuth();
     
   
@@ -18,30 +24,44 @@ function Profil(){
     if (file) {
       const fileType = file.type;
       if (fileType === 'image/jpeg' || fileType === 'image/png') {
-        this.setState({ profilePic: file, fileError: '' });
+        setProfilePic(file);
+        setFileError("");
       } else {
-        this.setState({ profilePic: null, fileError: 'Only JPG or PNG files are allowed' });
+        setProfilePic(null);
+        setFileError('Only JPG or PNG files are allowed');
       }
     }
   };
-
- const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    this.setState({ [name]: value });
-  };
-
+ const userLoaderData = () =>{
+    getUserData(getSession()).then(response=>{
+        if (response.success){
+            setProfile(response.data);
+        }
+    })
+ }
  const handleProfil = () => {
     
-    if (!profilePic) {
-      console.log('Please upload a valid file.');
-      return;
-    }
+     if (!profilePic) {
+       console.log('Please upload a valid file.');
+       return;
+     }
     
-    const body = {user:getSession(),name:jmeno,surname:prijmeni};
+    const formData = new FormData();
+    formData.append('image', profilePic);
+    uploadFile(formData).then(response=>{
+        if (response.success){
+            console.log(response.success + " ULOZENO")
+        }
+    })
+
+
+    const body = {user:getSession(),name:jmeno,surname:prijmeni,image:profilePic.name};
 
     callServer2(JSON.stringify(body)).then(response=>{
         if (response.success){
-            console.log(response.success + " ULOZENO")
+            console.log(response.success + " ULOZENO");
+            userLoaderData();
+            alert("uloženo");
         }
     })
     // Submit or log the data
@@ -50,6 +70,12 @@ function Profil(){
     console.log('Profile Pic:', profilePic);
   };
 
+
+  useEffect(() => {
+    if(isRegistered){
+        userLoaderData();
+    }
+   },[isRegistered]);
     return (
         <div> 
             {isRegistered?(<div className="profil-container">
@@ -59,7 +85,7 @@ function Profil(){
               name="jmeno"
               placeholder="Jmeno"
               value={jmeno}
-              onChange={handleInputChange}
+              onChange={(e) => setJmeno(e.target.value)}
             />
             <br />
             <input
@@ -67,7 +93,7 @@ function Profil(){
               name="prijmeni"
               placeholder="Prijmeni"
               value={prijmeni}
-              onChange={handleInputChange}
+              onChange={(e) => setPrijmeni(e.target.value)}
             />
             <br />
             <input
@@ -79,7 +105,12 @@ function Profil(){
             {fileError && <p>{fileError}</p>}
             <button onClick={handleProfil}>Změna</button>
           </div>):(<h1>Neni zaregistrovan</h1>)}
-          
+         <div>
+            {profile.name}
+            {profile.surname}
+            <img src={"http://s-kominek-24.dev.spsejecna.net/users"+profile.image}></img>
+         </div>
+
         </div>
        
       

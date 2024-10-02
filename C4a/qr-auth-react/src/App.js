@@ -12,6 +12,8 @@ function App() {
           <Routes>
               <Route path="/" element={<Register />} />
               <Route path="/login/:username/:id" element={<Login />} />
+              <Route path="/login/:username" element={<Login />} />
+              <Route path="/login" element={<Login />} />
               <Route path="/login/profil" element={<Profil />}/>
           </Routes>
         </BrowserRouter>

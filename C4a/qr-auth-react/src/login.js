@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { callServer } from './postData'; 
 import { setSession } from './AuthService';
 
+
 const Login = () => {
   const { id } = useParams();
   const { username } = useParams();
@@ -13,6 +14,11 @@ const Login = () => {
   const [show, setShow] = useState(false);
   const [showList, setShowList] = useState(false);
   const [userList, setUserList] = useState([{"email": ""}]);
+  
+  function handleClick() {
+    navigate("/login/profil");
+  }
+
 
   const handleLogin = () => {
     callServer("login",username,password).then(response =>{
@@ -43,6 +49,7 @@ const Login = () => {
   useEffect(() => {
     setUserName1(username);
   }, [username]);
+  
 
   return (
     <div>
@@ -69,6 +76,10 @@ const Login = () => {
       {showList && (
         <div>
          
+          <button type="button" onClick={handleClick}>
+            Upravit profil
+          </button>
+
           <button onClick={handleUserList}>Seznam uživatelů</button>
           <ul>
           {userList?.map(function(s) {return (
