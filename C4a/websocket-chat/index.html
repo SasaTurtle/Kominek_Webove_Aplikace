@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebSocket Chat with Username</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    #messages { height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+    #input { padding: 10px; width: calc(100% - 22px); }
+    #username { margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <h1>WebSocket Chat</h1>
+  <input id="username" type="text" placeholder="Enter your username" /><br>
+  <div id="messages"></div>
+  <input id="input" type="text" placeholder="Type a message..." />
+
+  <script>
+    const ws = new WebSocket('ws://localhost:8080');
+    const messagesDiv = document.getElementById('messages');
+    const input = document.getElementById('input');
+    const usernameInput = document.getElementById('username');
+
+    // Listen for messages from the server
+    ws.onmessage = function (event) {
+      event.data.text().then(function (text) {
+        const message = document.createElement('div');
+        message.textContent = text;
+        messagesDiv.appendChild(message);
+      });
+    };
+
+    // Send a message when the user presses Enter
+    input.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter' && usernameInput.value) {
+        const messageData = {
+          username: usernameInput.value,
+          message: input.value
+        };
+
+        ws.send(JSON.stringify(messageData)); // Send the username and message as a JSON object
+        input.value = ''; // Clear input field
+      } else if (!usernameInput.value) {
+        alert('Please enter a username!');
+      }
+    });
+  </script>
+</body>
+</html>
