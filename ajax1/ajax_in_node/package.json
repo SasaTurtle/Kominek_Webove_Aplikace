@@ -1,0 +1,14 @@
+{
+    "name": "ajax_in_node",
+    "version": "1.0.0",
+    "description": "Node.js AJAX backend",
+    "main": "server.js",
+    "scripts": {
+      "start": "node server.js"
+    },
+    "dependencies": {
+      "express": "^4.18.2",
+      "mysql": "^2.18.1"
+    }
+  }
+  
