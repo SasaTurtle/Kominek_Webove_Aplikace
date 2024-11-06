@@ -1,12 +1,17 @@
 const express = require('express');
-const mysql = require('mysql');
+const mysql = require('mysql2');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const QRCode = require('qrcode');
+const WebSocket = require('ws');
+const http = require('http');
 
 const app = express();
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+const port = 3001;
 app.use(bodyParser.json());
 app.use(cors());
 app.use((req, res, next) => {
@@ -18,13 +23,51 @@ app.use((req, res, next) => {
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: '',
+    password: 'password',
     database: 'coffee_tracker'
 });
 
 db.connect((err) => {
     if (err) throw err;
     console.log('MySQL Connected...');
+});
+
+let lastFetchTime = new Date(0);
+
+const checkForNewTasks = () => {
+    const query = `
+        SELECT tasks.task_description, users.username,tasks.created_at, tasks.id FROM tasks
+        inner join users on users.id = tasks.user_id
+        ORDER BY created_at DESC;
+    `;
+
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Database query error:', err);
+            return;
+        }
+
+        if (results.length > 0) {
+            // Send the entire tasks list to all WebSocket clients
+            const message = JSON.stringify({ type: 'tasksUpdate', data: results });
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(message);
+                }
+            });
+        }
+    });
+};
+
+setInterval(checkForNewTasks, 1000);
+
+wss.on('connection', (ws) => {
+    console.log('New WebSocket client connected');
+    ws.on('close', () => console.log('WebSocket client disconnected'));
+});
+
+server.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
 });
 
 app.post('/add_task', (req, res) => {
@@ -83,12 +126,12 @@ app.post('/complete_task', (req, res) => {
                 }
 
                 if (taskDescription === 'Je potřeba vyčistit kávovar') {
-                    db.query('UPDATE machine_status SET coffee_until_clean = 20, last_cleaned = NOW() WHERE id = (SELECT MAX(id) FROM machine_status)', (err, result) => {
+                    db.query('UPDATE machine_status SET coffee_until_clean = 20, last_cleaned = NOW() WHERE id = 1', (err, result) => {
                         if (err) throw err;
                         res.json({ message: 'Task completed and machine cleaned' });
                     });
                 } else if(taskDescription === 'Je potřeba koupit mléko') {
-                    db.query('UPDATE machine_status SET milk_remaining = 20000 WHERE id = (SELECT MAX(id) FROM machine_status)', (err, result) => {
+                    db.query('UPDATE machine_status SET milk_remaining = 20000 WHERE id = 1', (err, result) => {
                         if (err) throw err;
                         res.json({ message: 'Task completed and machine refilled with milk'});
                     });
@@ -249,7 +292,7 @@ app.get('/machine_status', (req, res) => {
 app.post('/machine_clean', (req, res) => {
     const { token } = req.body;
     const user = jwt.verify(token, 'secretkey');
-    db.query('UPDATE machine_status SET coffee_until_clean = 20, last_cleaned = NOW() WHERE id = (SELECT MAX(id) FROM machine_status)', (err, result) => {
+    db.query('UPDATE machine_status SET coffee_until_clean = 20, last_cleaned = NOW() WHERE id = 1', (err, result) => {
         if (err) throw err;
         res.send('Machine cleaned');
     });
@@ -264,7 +307,7 @@ app.post('/generate_qr', (req, res) => {
 });
 
 function updateMachineStatus(usedMilk) {
-    db.query('UPDATE machine_status SET milk_remaining = milk_remaining - ?, coffee_until_clean = coffee_until_clean - 1 WHERE id = (SELECT MAX(id) FROM machine_status)', [usedMilk], (err, result) => {
+    db.query('UPDATE machine_status SET milk_remaining = milk_remaining - ?, coffee_until_clean = coffee_until_clean - 1 WHERE id = 1', [usedMilk], (err, result) => {
         if (err) throw err;
     });
 }

@@ -27,7 +27,17 @@ create TABLE machine_status (
     coffee_until_clean INT,
     last_cleaned TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-UPDATE machine_status SET milk_remaining = 20000 WHERE id = (SELECT MAX(id) FROM machine_status);
+
+INSERT INTO `coffee_tracker`.`machine_status`
+(`id`,
+`milk_remaining`,
+`coffee_until_clean`,
+`last_cleaned`)
+VALUES
+(1,
+20000,
+20,
+now());
 
 
 CREATE TABLE tasks (

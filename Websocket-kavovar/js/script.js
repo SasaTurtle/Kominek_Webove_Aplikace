@@ -1,3 +1,7 @@
+var url = 'http://localhost:3000'
+var ws = 'ws://localhost:3001'
+var pageUrl = 'http://localhost:5500'
+
 function addTask(taskType) {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -5,7 +9,7 @@ function addTask(taskType) {
         return;
     }
 
-    fetch('http://localhost:3000/add_task', {
+    fetch(url+'/add_task', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -24,30 +28,40 @@ function addTask(taskType) {
     .catch(error => console.error('Error:', error));
 }
 
+
 function loadTasks() {
-    fetch('http://localhost:3000/tasks')
-    .then(response => response.json())
-    .then(data => {
+
+    const socket = new WebSocket(ws);
+
+    // Handle incoming WebSocket messages
+    socket.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+
+        if (message.type === 'tasksUpdate') {
+            updateTaskList(message.data);
+        }
+    };
+}
+    // Update the task list in the DOM
+    function updateTaskList(tasks) {
         const taskList = document.getElementById('coffeeStat');
         taskList.innerHTML = '';
-        data.forEach(task => {
+
+        tasks.forEach(task => {
             const item = document.createElement('li');
-            item.innerText = `${task.task_description} - Created by ${task.username} at ${task.created_at.substr(0,10)}`;
-
-            if (!task.is_completed) {
-                const completeButton = document.createElement('button');
-                completeButton.innerText = 'Complete';
-                completeButton.onclick = () => completeTask(task.id);
-                item.appendChild(completeButton);
-            } else {
-                item.style.textDecoration = 'line-through';
-            }
-
-            taskList.appendChild(item);
+              item.innerText = `${task.task_description} - Created by ${task.username} at ${task.created_at.substr(0,10)}   `;
+              if (!task.is_completed) {
+                  const completeButton = document.createElement('button');
+                  completeButton.innerText = 'Complete';
+                  completeButton.onclick = () => completeTask(task.id);
+                  item.appendChild(completeButton);
+              } else {
+                  item.style.textDecoration = 'line-through';
+              }
+              taskList.appendChild(item);
         });
-    })
-    .catch(error => console.error('Error:', error));
-}
+    }
+
 
 function completeTask(taskId) {
     const token = localStorage.getItem('token');
@@ -56,12 +70,12 @@ function completeTask(taskId) {
         return;
     }
 
-    fetch('http://localhost:3000/complete_task', {
+    fetch(url+'/complete_task', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ token, task_id: taskId }),
+        body: JSON.stringify({ token: token, task_id: taskId }),
     })
     .then(response => response.json())
     .then(data => {
@@ -88,7 +102,7 @@ function submitOrder() {
         return;
     }
 
-    fetch('http://localhost:3000/order', {
+    fetch(url+'/order', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -115,7 +129,7 @@ function submitOrder() {
 function getSummary() {
     const token = localStorage.getItem('token');
 
-    fetch(`http://localhost:3000/summary?token=${token}`)
+    fetch(url+`/summary?token=${token}`)
     .then(response => response.json())
     .then(data => {
         const coffeeList = document.getElementById("coffeeList");
@@ -136,7 +150,7 @@ function clearTasks() {
         return;
     }
 
-    fetch('http://localhost:3000/clear_tasks', {
+    fetch(url+'/clear_tasks', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -157,7 +171,7 @@ function clearTasks() {
 
 
 function loadMachineStatus() {
-    fetch('http://localhost:3000/machine_status')
+    fetch(url+'/machine_status')
     .then(response => response.json())
     .then(data => {
         if (data) {
@@ -179,7 +193,7 @@ function loadMachineStatus() {
 function cleanMachine() {
     const token = localStorage.getItem('token');
 
-    fetch('http://localhost:3000/machine_clean', {
+    fetch(url+'/machine_clean', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -195,9 +209,9 @@ function cleanMachine() {
 }
 
 function generateQRCode() {
-    const registrationUrl = "http://localhost:5500/register.html"; // Adjust the port if necessary
+    const registrationUrl = pageUrl+"/register.html"; // Adjust the port if necessary
     
-    fetch('http://localhost:3000/generate_qr', {
+    fetch(url+'/generate_qr', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
