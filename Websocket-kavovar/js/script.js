@@ -40,6 +40,10 @@ function loadTasks() {
         if (message.type === 'tasksUpdate') {
             updateTaskList(message.data);
         }
+        if(message.type === 'clearTasks'){
+            const taskList = document.getElementById('coffeeStat');
+            taskList.innerHTML = '';
+        }
     };
 }
     // Update the task list in the DOM
@@ -171,22 +175,28 @@ function clearTasks() {
 
 
 function loadMachineStatus() {
-    fetch(url+'/machine_status')
-    .then(response => response.json())
-    .then(data => {
-        if (data) {
-            document.getElementById("milkStatus").innerText = `Mléko: ${data.milk_remaining} ml`;
-            document.getElementById("cleaningStatus").innerText = `Počet káv do čištění: ${data.coffee_until_clean}`;
-        } else {
-            document.getElementById("milkStatus").innerText = 'Chyba při načítání stavu mléka';
-            document.getElementById("cleaningStatus").innerText = 'Chyba při načítání stavu čištění';
+    const socket = new WebSocket(ws);
+
+    socket.onopen = () => {
+        console.log("WebSocket connection for machine status opened");
+    };
+
+    // Listen for machine status updates via WebSocket
+    socket.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        if (message.type === 'machineStatusUpdate') {
+            updateMachineStatusDisplay(message.data);
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        document.getElementById("milkStatus").innerText = 'Chyba při načítání stavu mléka';
-        document.getElementById("cleaningStatus").innerText = 'Chyba při načítání stavu čištění';
-    });
+    };
+
+    socket.onclose = () => {
+        console.log("WebSocket connection for machine status closed");
+    };
+}
+
+function updateMachineStatusDisplay(status) {
+    document.getElementById("milkStatus").innerText = `Mléko: ${status.milk_remaining} ml`;
+    document.getElementById("cleaningStatus").innerText = `Počet káv do čištění: ${status.coffee_until_clean}`;
 }
 
 

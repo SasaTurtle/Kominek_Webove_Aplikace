@@ -36,7 +36,7 @@ let lastFetchTime = new Date(0);
 
 const checkForNewTasks = () => {
     const query = `
-        SELECT tasks.task_description, users.username,tasks.created_at, tasks.id FROM tasks
+        SELECT tasks.task_description, users.username,tasks.created_at, tasks.id, tasks.is_completed FROM tasks
         inner join users on users.id = tasks.user_id
         ORDER BY created_at DESC;
     `;
@@ -50,6 +50,13 @@ const checkForNewTasks = () => {
         if (results.length > 0) {
             // Send the entire tasks list to all WebSocket clients
             const message = JSON.stringify({ type: 'tasksUpdate', data: results });
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(message);
+                }
+            });
+        }else {
+            const message = JSON.stringify({ type: 'clearTasks'});
             wss.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(message);
@@ -128,11 +135,13 @@ app.post('/complete_task', (req, res) => {
                 if (taskDescription === 'Je potřeba vyčistit kávovar') {
                     db.query('UPDATE machine_status SET coffee_until_clean = 20, last_cleaned = NOW() WHERE id = 1', (err, result) => {
                         if (err) throw err;
+                        broadcastMachineStatus();
                         res.json({ message: 'Task completed and machine cleaned' });
                     });
                 } else if(taskDescription === 'Je potřeba koupit mléko') {
                     db.query('UPDATE machine_status SET milk_remaining = 20000 WHERE id = 1', (err, result) => {
                         if (err) throw err;
+                        broadcastMachineStatus();
                         res.json({ message: 'Task completed and machine refilled with milk'});
                     });
                 }
@@ -240,6 +249,7 @@ app.post('/order', (req, res) => {
                     console.error(err);
                     return res.status(500).json({ error: 'Internal server error' });
                 }
+                broadcastMachineStatus();
                 updateMachineStatus(milk);
                 res.json({ message: 'Order placed' });
             });
@@ -261,6 +271,24 @@ app.get('/summary', (req, res) => {
         res.json(results);
     });
 });
+
+
+function broadcastMachineStatus() {
+    db.query('SELECT milk_remaining, coffee_until_clean FROM machine_status ORDER BY id DESC LIMIT 1', (err, result) => {
+        if (err) {
+            console.error('Database query error:', err);
+            return;
+        }
+        if (result.length > 0) {
+            const message = JSON.stringify({ type: 'machineStatusUpdate', data: result[0] });
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(message);
+                }
+            });
+        }
+    });
+}
 
 function checkMachineStatus(callback) {
     db.query('SELECT milk_remaining, coffee_until_clean FROM machine_status ORDER BY id DESC LIMIT 1', (err, result) => {
